@@ -8,7 +8,10 @@ import com.example.mydemo.Until.SecureTool;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Map;
 
 /**
  *
@@ -19,13 +22,23 @@ public class demoController {
     @Autowired
     private ServConf conf;
     @PostMapping("/httpSend")
-    public String httpSend(String nodeid,String singType,String message){
-        byte[] header=CreateHeader(nodeid,singType,message.length());
-        byte[] messageBody=encrypt(message);
+    public String httpSend(@RequestBody Map<String, String> params){
+        byte[] header=CreateHeader(params.get("nodeid"),params.get("singType"),params.get("message").length());
+        byte[] messageBody=null;
+        if(params.get("singType").equals("1"))
+        {
+            messageBody=params.get("message").getBytes();
+        }
+        else
+        {
+            messageBody=encrypt(params.get("message"));
+        }
+
         try {
             //boolean flag= CommunicationTool.SendAndRecv(conf.serverIP, conf.serverPort, conf.serverHost, conf.serverUrl,conf.nodeid,messageBody);
-            byte[] flag = CommunicationTool.httpSendAndRecv(conf.serverIP, conf.serverPort, conf.serverHost, conf.serverUrl, header, messageBody);
-            return "success";
+            byte[] revMessage = CommunicationTool.httpSendAndRecv(conf.getServerIP(), conf.getServerPort(), conf.getServerHost(), conf.getServerUrl(), header, messageBody);
+            String str=new String(revMessage);
+            return str;
         }
         catch (Exception ex){
             return ex.getMessage();
@@ -35,7 +48,7 @@ public class demoController {
     public String socketSend(String nodeid,String singType,String message)
     {
         try {
-            return CommunicationTool.SendAndRecv(conf.serverIP, conf.serverPort, conf.serverHost, conf.serverUrl,conf.nodeid,message);
+            return CommunicationTool.SendAndRecv(conf.getServerIP(), conf.getServerPort(), conf.getServerHost(), conf.getServerUrl(),conf.getNodeid(),message);
         }
         catch (Exception ex){
             return ex.getMessage();

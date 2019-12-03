@@ -27,14 +27,17 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.SecretKeySpec;
 
+import com.example.mydemo.Model.ServConf;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.encoders.Base64;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public class SecureTool {
 	private String secureType = null;
 	private String sessionKeyPath = null;
 	private byte[] sessionkey = null;
-
+	@Autowired
+	private ServConf conf;
 	private static BouncyCastleProvider bouncyCastleProvider = null;
 
     public static synchronized BouncyCastleProvider getInstance() {
@@ -60,8 +63,8 @@ public class SecureTool {
 		String sessionKeyPath = String.format("%s/sessionKey",nodeid);
 		if(new File(publicKeyPath).exists()==false)
 		{
-			publicKeyPath = String.format("%s\\conf\\key\\%s\\320300M1.publickey",System.getenv("JAVA_HOME"),nodeid);
-			sessionKeyPath = String.format("%s\\conf\\key\\%s\\sessionKey",System.getenv("JAVA_HOME"),nodeid);
+			publicKeyPath = conf.getPublicKeyPath();//String.format("%s\\conf\\key\\%s\\320300M1.publickey",System.getenv("JAVA_HOME"),nodeid);
+			sessionKeyPath =conf.getSessionKeyPath();// String.format("%s\\conf\\key\\%s\\sessionKey",System.getenv("JAVA_HOME"),nodeid);
 			if(new File(publicKeyPath).exists()==false)
 			{
 				System.out.println("无法找到可用的公钥文件："+String.format("%s/key",nodeid));
