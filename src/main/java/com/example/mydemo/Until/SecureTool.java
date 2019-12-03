@@ -1,4 +1,4 @@
-package com.example.mydemo;
+package com.example.mydemo.Until;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
@@ -65,7 +65,7 @@ public class SecureTool {
 			if(new File(publicKeyPath).exists()==false)
 			{
 				System.out.println("无法找到可用的公钥文件："+String.format("%s/key",nodeid));
-				return false;
+				throw  new Exception("无法找到可用的公钥文件："+String.format("%s/key",nodeid));
 			}
 		}
 
@@ -286,7 +286,7 @@ public class SecureTool {
 
 	/**
 	 * 写入sessionKey
-	 * @param handKey
+	 *
 	 * @return
 	 * @throws Exception
 	 */
@@ -349,7 +349,7 @@ public class SecureTool {
 	 * RSA私钥加密
 	 *
 	 * @param privateKey
-	 * @param plainText
+	 * @param plainByte
 	 * @return
 	 * @throws Exception
 	 */

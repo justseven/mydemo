@@ -1,6 +1,5 @@
-package com.example.mydemo;
+package com.example.mydemo.Until;
 
-import java.io.Console;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
@@ -10,13 +9,13 @@ import java.util.Date;
 public class CommunicationTool {
     private static String secureType = "guomiSM";
 
-    public static boolean SendAndRecv(String serverIP,String serverPort,String serverHost,String serverUrl,String nodeid,String messageFile) throws Exception
+    public static String SendAndRecv(String serverIP,String serverPort,String serverHost,String serverUrl,String nodeid,String messageFile) throws Exception
     {
         //获取会话密钥，设置加解密参数
         SecureTool secureTool = new SecureTool();
-        if(secureTool.updateKeyInfo(secureType,nodeid) == false) return false;
+        if(secureTool.updateKeyInfo(secureType,nodeid) == false)
         secureTool.printSessionKey();
-        if(messageFile.equalsIgnoreCase("overall")) return true;//如果只是打印密钥，则直接返回
+        if(messageFile.equalsIgnoreCase("overall")) return "";//如果只是打印密钥，则直接返回
 
         //交易类型标记 0:正常 1:签到
         String singType = secureTool.getSignType(messageFile);
@@ -41,7 +40,7 @@ public class CommunicationTool {
 
         //调用发送
         byte[] recvByte = httpSendAndRecv(serverIP,serverPort,serverHost,serverUrl,messageHead,messageBody);
-        if(recvByte==null) return false;
+        if(recvByte==null) return "接受报文为空";
 
         //重新获取加解密标志
         singType = NetTool.getSingTypeFromHead(messageHead);
@@ -50,12 +49,13 @@ public class CommunicationTool {
 
         //解析返回报文
         String messageFile1 = String.format("%s.%s",messageFile,Long.toString(new Date().getTime()));
+        String recvMessage="";
         if(singType.equalsIgnoreCase("0")) //需要解密
         {
             NetTool.printEncMessage("接收到的密文",recvByte,recvByte.length);
             messageBody = secureTool.decrypt(recvByte); //解密
 
-            String recvMessage = new String(messageBody, "UTF-8");
+            recvMessage = new String(messageBody, "UTF-8");
             System.out.printf("已解密报文[%d]=[%s]\n", recvMessage.length(), recvMessage);
             FileTool.String2File(messageFile1,recvMessage);
             System.out.printf("已解密报文已写入文件[%s]\n\n",messageFile1);
@@ -63,20 +63,20 @@ public class CommunicationTool {
         else
         {
             messageBody = recvByte;
-            String recvMessage = new String(messageBody, "UTF-8");
+            recvMessage = new String(messageBody, "UTF-8");
             System.out.printf("未加密报文[%d]=[%s]\n", recvLen, recvMessage);
             FileTool.String2File(messageFile1,recvMessage);
             System.out.printf("未加密报文已写入文件[%s]\n\n",messageFile1);
 
             //如果为明文，但是不是签到报文则直接返回
-            if(secureTool.isSignType(messageFile)==false) return true;
+            if(secureTool.isSignType(messageFile)==false) return "非签到报文";
             boolean saveFlag = secureTool.saveHandKey(recvMessage);
             if (saveFlag)
                 System.out.printf("会话密钥更新成功\n\n");
             else
                 System.out.printf("会话密钥更新失败\n\n");
         }
-        return true;
+        return recvMessage;
     }
 
     //HTTP方式发送和接收数据
