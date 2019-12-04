@@ -36,55 +36,55 @@ public class SecureTool {
 	private String secureType = null;
 	private String sessionKeyPath = null;
 	private byte[] sessionkey = null;
-	@Autowired
-	private ServConf conf;
+
 	private static BouncyCastleProvider bouncyCastleProvider = null;
 
-    public static synchronized BouncyCastleProvider getInstance() {
-        if (bouncyCastleProvider == null) {
-            bouncyCastleProvider = new BouncyCastleProvider();
-            Security.addProvider(bouncyCastleProvider);
-        }
-        return bouncyCastleProvider;
-    }
+	public static synchronized BouncyCastleProvider getInstance() {
+		if (bouncyCastleProvider == null) {
+			bouncyCastleProvider = new BouncyCastleProvider();
+			Security.addProvider(bouncyCastleProvider);
+		}
+		return bouncyCastleProvider;
+	}
 
-    /**
-     * 加载sessionkey等信息
-     * @param secureType
-     * @param nodeid
-     * @return
-     * @throws Exception
-     */
-    public boolean updateKeyInfo(String secureType,String nodeid) throws Exception{
-    	this.secureType = secureType;
+	/**
+	 * 加载sessionkey等信息
+	 * @param secureType
+	 * @param nodeid
+	 * @return
+	 * @throws Exception
+	 */
+	public boolean updateKeyInfo(String secureType,String nodeid) throws Exception{
+		this.secureType = secureType;
 
-    	//确定密钥文件的路径
-    	String publicKeyPath  = String.format("%s/key",nodeid);
+		//确定密钥文件的路径
+		String publicKeyPath  = String.format("%s/key",nodeid);
 		String sessionKeyPath = String.format("%s/sessionKey",nodeid);
 		if(new File(publicKeyPath).exists()==false)
 		{
-			publicKeyPath = conf.getPublicKeyPath();//String.format("%s\\conf\\key\\%s\\320300M1.publickey",System.getenv("JAVA_HOME"),nodeid);
-			sessionKeyPath =conf.getSessionKeyPath();// String.format("%s\\conf\\key\\%s\\sessionKey",System.getenv("JAVA_HOME"),nodeid);
+
+			publicKeyPath = String.format("%s/conf/key/%s/key",System.getenv("HOME"),nodeid);
+			sessionKeyPath = String.format("%s/conf/key/%s/sessionKey",System.getenv("HOME"),nodeid);
 			if(new File(publicKeyPath).exists()==false)
 			{
 				System.out.println("无法找到可用的公钥文件："+String.format("%s/key",nodeid));
-				throw  new Exception("无法找到可用的公钥文件："+String.format("%s/key",nodeid));
+				return false;
 			}
 		}
 
-    	//公钥
-    	RSAPublicKey publickey = loadPublicKey(publicKeyPath);
-    	if(new File(sessionKeyPath).exists())
-    	{
-    		//加密后的会话密钥
+		//公钥
+		RSAPublicKey publickey = loadPublicKey(publicKeyPath);
+		if(new File(sessionKeyPath).exists())
+		{
+			//加密后的会话密钥
 			byte[] sm4EncryptByte = getRSAKeyByte(sessionKeyPath);
-	    	//公钥解密
-	    	sessionkey = rsaDecrypt(publickey,sm4EncryptByte);
-    	}
+			//公钥解密
+			sessionkey = rsaDecrypt(publickey,sm4EncryptByte);
+		}
 
-    	this.sessionKeyPath = sessionKeyPath;
-    	return true;
-    }
+		this.sessionKeyPath = sessionKeyPath;
+		return true;
+	}
 
 
 	/**
@@ -219,6 +219,20 @@ public class SecureTool {
 		NetTool.printEncMessage("sessionKey",sslKey,sslKey.length);
 	}
 
+	public String returnSessionKey(){
+		byte[] sslKey = null;
+		if(sessionkey==null) return "秘钥错误";
+
+		if(secureType.equalsIgnoreCase("guomiSM"))
+		{
+			sslKey = new byte[16];
+			System.arraycopy(sessionkey, 0, sslKey, 0, sslKey.length);
+		}
+		else return "类型错误";
+
+		return NetTool.returnEncMessage("sessionKey",sslKey,sslKey.length);
+	}
+
 	/**
 	 * 获取报文类型
 	 * @param messageFile
@@ -289,7 +303,7 @@ public class SecureTool {
 
 	/**
 	 * 写入sessionKey
-	 *
+	 * @param
 	 * @return
 	 * @throws Exception
 	 */
@@ -352,7 +366,7 @@ public class SecureTool {
 	 * RSA私钥加密
 	 *
 	 * @param privateKey
-	 * @param plainByte
+	 * @param
 	 * @return
 	 * @throws Exception
 	 */
@@ -404,12 +418,12 @@ public class SecureTool {
 	 */
 	private byte[] sm4GenKey() throws Exception {
 		char basecode[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890~;<@#:>%^".toCharArray();
-        String key = "";
-        Random random = new Random();
-        for (int index = 0; index < 16; index++) {
-        	key = key + basecode[random.nextInt(basecode.length)];
-        }
-        return key.getBytes();
+		String key = "";
+		Random random = new Random();
+		for (int index = 0; index < 16; index++) {
+			key = key + basecode[random.nextInt(basecode.length)];
+		}
+		return key.getBytes();
 	}
 
 	/**
@@ -419,9 +433,9 @@ public class SecureTool {
 	 * @throws Exception
 	 */
 	public String getHandKey(String secureType,String nodeid) throws Exception {
-    	//确定密钥文件的路径
-    	String privateKeyPath = String.format("%s/privateKey",nodeid);
-    	String sessionKeyPath = String.format("%s/sessionKey",nodeid);
+		//确定密钥文件的路径
+		String privateKeyPath = String.format("%s/privateKey",nodeid);
+		String sessionKeyPath = String.format("%s/sessionKey",nodeid);
 		if(new File(privateKeyPath).exists()==false)
 		{
 			privateKeyPath = String.format("%s/conf/key/%s/privateKey",System.getenv("HOME"),nodeid);

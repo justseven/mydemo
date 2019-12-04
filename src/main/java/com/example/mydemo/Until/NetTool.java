@@ -1,5 +1,7 @@
 package com.example.mydemo.Until;
 
+import javax.xml.bind.DatatypeConverter;
+
 public class NetTool {
 	private static void DATA2NET(byte[] buf, int offset, int x) {
 		buf[(offset + 0)] = (byte) (x >> 24);
@@ -70,6 +72,11 @@ public class NetTool {
 			if ((index + 1) % 16 == 0) System.out.printf("\n");
 		}
 		System.out.printf("\n");
+	}
+
+	public static String returnEncMessage(String prefix, byte[] message, int length) {
+		String str=DatatypeConverter.printHexBinary(message);
+		return str;
 	}
 	
 	public static String getNodeidFromHead(byte[] messageHead){

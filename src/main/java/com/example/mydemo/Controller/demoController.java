@@ -45,14 +45,12 @@ public class demoController {
         }
     }
     @PostMapping("/socketSend")
-    public String socketSend(String nodeid,String singType,String message)
+    public String socketSend(@RequestBody Map<String, String> params)
     {
-        try {
-            return CommunicationTool.SendAndRecv(conf.getServerIP(), conf.getServerPort(), conf.getServerHost(), conf.getServerUrl(),conf.getNodeid(),message);
-        }
-        catch (Exception ex){
-            return ex.getMessage();
-        }
+
+        String response= CommunicationTool.SendAndRecv(conf.getServerIP(), conf.getServerPort(), conf.getServerHost(), conf.getServerUrl(),conf.getNodeid(),params.get("message"));
+        return response;
+
     }
 
     private byte[] CreateHeader(String nodeid,String singType,int messageLen){
